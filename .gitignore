@@ -1,0 +1,11 @@
+## .NET build output
+bin/
+obj/
+*.user
+.vs/
+
+## Publish output
+publish/
+
+## Local logs
+*.log
