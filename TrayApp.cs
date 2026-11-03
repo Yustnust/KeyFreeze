@@ -35,7 +35,7 @@ internal sealed class TrayApp : ApplicationContext
 
         _tray = new NotifyIcon
         {
-            Icon = SystemIcons.Shield,
+            Icon = LoadAppIcon(),
             Visible = true,
             Text = "KeyFreeze - 未锁定",
             ContextMenuStrip = BuildMenu()
@@ -124,5 +124,15 @@ internal sealed class TrayApp : ApplicationContext
         _tray.Visible = false;
         _tray.Dispose();
         Application.Exit();
+    }
+
+    private static Icon LoadAppIcon()
+    {
+        var asm = typeof(TrayApp).Assembly;
+        using var rs = asm.GetManifestResourceStream("KeyFreeze.app.ico")!;
+        var ms = new MemoryStream();
+        rs.CopyTo(ms);
+        ms.Position = 0;
+        return new Icon(ms);
     }
 }

@@ -9,7 +9,12 @@
     <AssemblyName>KeyFreeze</AssemblyName>
     <RootNamespace>KeyFreeze</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>app.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="app.ico" />
+  </ItemGroup>
 
 </Project>
