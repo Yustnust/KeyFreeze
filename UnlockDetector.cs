@@ -6,8 +6,8 @@ internal sealed class UnlockDetector : IDisposable
 {
     private readonly Settings _settings;
     private readonly System.Text.StringBuilder _buffer = new();
-    private long _lastKeyTicks;
-    private long? _comboStart;
+    private int _lastKeyTicks;
+    private int? _comboStart;
     private bool _cCtrl, _cAlt, _cShift, _cKey;
     private volatile bool _active;
 
@@ -35,7 +35,7 @@ internal sealed class UnlockDetector : IDisposable
 
     private void CheckPassphrase(int vk)
     {
-        var now = Environment.TickCount64;
+        var now = Environment.TickCount;
         if (_lastKeyTicks != 0 && now - _lastKeyTicks > _settings.PassphraseTimeoutMs)
             _buffer.Clear();
         _lastKeyTicks = now;
@@ -63,8 +63,8 @@ internal sealed class UnlockDetector : IDisposable
 
         if (_cCtrl && _cAlt && _cShift && _cKey)
         {
-            if (_comboStart == null) _comboStart = Environment.TickCount64;
-            else if (Environment.TickCount64 - _comboStart.Value >= _settings.ComboHoldMs)
+            if (_comboStart == null) _comboStart = Environment.TickCount;
+            else if (Environment.TickCount - _comboStart.Value >= _settings.ComboHoldMs)
                 Trigger();
         }
         else

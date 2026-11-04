@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -97,7 +98,7 @@ internal sealed class TrayApp : ApplicationContext
         if (_locked || !_settings.AutoLockIdle) return;
 
         var lii = new NativeMethods.LASTINPUTINFO();
-        lii.cbSize = (uint)Marshal.SizeOf<NativeMethods.LASTINPUTINFO>();
+        lii.cbSize = (uint)Marshal.SizeOf(typeof(NativeMethods.LASTINPUTINFO));
         if (NativeMethods.GetLastInputInfo(ref lii))
         {
             uint idle = NativeMethods.GetTickCount() - lii.dwTime;

@@ -27,14 +27,16 @@
 
 ## 构建与发布
 
-```powershell
-# 运行（.NET 10 SDK）
-dotnet run -c Release
+开发机只需 .NET 10 SDK（或任意新版 SDK），目标框架为 .NET Framework 4.0，最终产出的是单一 `KeyFreeze.exe`（图标已内嵌）。
 
-# 发布为单文件 exe
-dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
-# 产物：bin/Release/net10.0-windows/win-x64/publish/KeyFreeze.exe
+```powershell
+# 构建
+dotnet build -c Release
+# 产物：bin\Release\KeyFreeze.exe（直接复制即可分发）
 ```
+
+> **在 Windows 7 上运行**：需先安装一次 **.NET Framework 4.0**（独立安装包，约 40MB，支持 Win7 RTM，无需 SP1）。
+> 安装后 `KeyFreeze.exe` 可直接运行；Win8 / Win10 / Win11 已内置 4.x，无需额外操作。
 
 ## 安全说明
 
@@ -58,7 +60,7 @@ dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile
 
 ## 技术实现
 
-- 语言：C# / .NET 10（Windows Forms，托盘程序）。
+- 语言：C# / .NET Framework 4.0（Windows Forms，托盘程序；兼容 Windows 7 / 8 / 10 / 11，Win7 上无需 SP1）。
 - 输入拦截：通过 `SetWindowsHookEx` 安装 `WH_KEYBOARD_LL` / `WH_MOUSE_LL` 低层钩子，在回调中返回非零值吞掉事件。
 - 解锁判定：在钩子回调里先判断是否匹配解锁手势，再决定是否放行 / 吞掉。
 - 低层钩子随进程退出自动卸载，因此进程崩溃即等于「自动解锁」。

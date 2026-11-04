@@ -10,7 +10,7 @@ internal sealed class Watchdog : IDisposable
     private readonly Settings _settings;
     private readonly Func<bool> _isLocked;
     private System.Threading.Timer? _timer;
-    private long _uiHeartbeat = Environment.TickCount64;
+    private int _uiHeartbeat = Environment.TickCount;
 
     private static readonly string LogPath =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyFreeze", "watchdog.log");
@@ -22,7 +22,7 @@ internal sealed class Watchdog : IDisposable
         _isLocked = isLocked;
     }
 
-    public void UiHeartbeat() => Volatile.Write(ref _uiHeartbeat, Environment.TickCount64);
+    public void UiHeartbeat() => _uiHeartbeat = Environment.TickCount;
 
     public void Start()
     {
@@ -36,7 +36,7 @@ internal sealed class Watchdog : IDisposable
         if (!_settings.EnableWatchdog) return;
         if (!_isLocked()) return;
 
-        if (Environment.TickCount64 - Volatile.Read(ref _uiHeartbeat) > 20000)
+        if (Environment.TickCount - _uiHeartbeat > 20000)
         {
             try
             {
