@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 namespace KeyFreeze;
@@ -20,7 +21,8 @@ internal sealed class SettingsForm : Form
     public SettingsForm(Settings settings)
     {
         _settings = settings;
-        Text = "KeyFreeze 设置";
+        Text = "KeyFreeze 设置  [build " +
+            File.GetLastWriteTime(Application.ExecutablePath).ToString("MM-dd HH:mm") + "]";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;

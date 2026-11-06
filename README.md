@@ -44,6 +44,10 @@ dotnet publish -c Release -f net10.0-windows -r win-x64 --self-contained true -p
 > **Windows 8 / 10 / 11**：系统已内置 .NET Framework 4.x，`net40` 版本同样可直接运行；也可选用 `net10.0-windows` 单文件版。
 > 注意：`.NET 10` 版本**不能**在 Windows 7 上运行（运行时依赖 Win10 的 UCRT）。
 
+## 诊断
+
+日志位于 `%APPDATA%\KeyFreeze\debug.log`，记录启动的 exe 路径与编译时间、锁定 / 解锁、组合键状态变化及解锁触发来源。设置窗口标题也会显示当前 exe 的编译时间，便于确认运行的是哪一个版本。
+
 ## 安全说明
 
 - 进程崩溃 / 退出时，系统自动移除输入钩子，输入立即恢复。

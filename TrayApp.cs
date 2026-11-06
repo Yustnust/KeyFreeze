@@ -48,6 +48,9 @@ internal sealed class TrayApp : ApplicationContext
 
         _watchdog.Start();
 
+        Diagnostics.Log("APP START exe=" + Application.ExecutablePath +
+            " built=" + File.GetLastWriteTime(Application.ExecutablePath).ToString("yyyy-MM-dd HH:mm:ss"));
+
         _tray.ShowBalloonTip(3000, "KeyFreeze 已启动",
             "右键托盘图标可锁定 / 解锁。锁定后输入口令或组合键解锁。", ToolTipIcon.Info);
     }
@@ -73,6 +76,7 @@ internal sealed class TrayApp : ApplicationContext
     {
         if (_locked) return;
         _locked = true;
+        Diagnostics.Log("LOCK");
         _overlay.SetHint(UnlockHint());
         if (_settings.ShowOverlay) _overlay.Show();
         _detector.Start();
@@ -85,11 +89,26 @@ internal sealed class TrayApp : ApplicationContext
     {
         if (!_locked) return;
         _locked = false;
+        Diagnostics.Log("UNLOCK");
+
+        // 立即卸载钩子，恢复输入；这一步不依赖 UI 线程调度是否成功
         _detector.Stop();
         _blocker.Stop();
-        if (_overlay.Visible) _overlay.Hide();
-        _tray.Text = "KeyFreeze - 未锁定";
-        _tray.ShowBalloonTip(2000, "已解锁", "输入已恢复。", ToolTipIcon.Info);
+
+        try
+        {
+            _sync.Post(_ =>
+            {
+                try
+                {
+                    if (_overlay.Visible) _overlay.Hide();
+                    _tray.Text = "KeyFreeze - 未锁定";
+                    _tray.ShowBalloonTip(2000, "已解锁", "输入已恢复。", ToolTipIcon.Info);
+                }
+                catch { }
+            }, null);
+        }
+        catch { }
     }
 
     private void IdleTick(object? sender, EventArgs e)
