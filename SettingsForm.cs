@@ -25,14 +25,16 @@ internal sealed class SettingsForm : Form
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
-        Size = new System.Drawing.Size(380, 320);
+        ClientSize = new Size(420, 330);
+        MinimumSize = new Size(420, 330);
 
         _panel = new TableLayoutPanel
         {
-            Dock = DockStyle.Top,
+            Dock = DockStyle.Fill,
             ColumnCount = 2,
             RowCount = 8,
             GrowStyle = TableLayoutPanelGrowStyle.AddRows,
+            AutoScroll = true,
             Padding = new Padding(12)
         };
         _panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
@@ -53,12 +55,25 @@ internal sealed class SettingsForm : Form
         AddRow("闲置分钟：", _idleMin);
         AddRow("遮罩：", _overlay);
         AddRow("看门狗：", _watchdog);
-        Controls.Add(_panel);
 
-        var ok = new Button { Text = "确定", DialogResult = DialogResult.OK, Location = new System.Drawing.Point(100, 262) };
-        var cancel = new Button { Text = "取消", DialogResult = DialogResult.Cancel, Location = new System.Drawing.Point(200, 262) };
-        Controls.Add(ok);
-        Controls.Add(cancel);
+        var ok = new Button { Text = "确定", DialogResult = DialogResult.OK, Width = 80 };
+        var cancel = new Button { Text = "取消", DialogResult = DialogResult.Cancel, Width = 80 };
+        var buttons = new FlowLayoutPanel
+        {
+            FlowDirection = FlowDirection.RightToLeft,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Anchor = AnchorStyles.Right,
+            Padding = new Padding(0, 12, 0, 0)
+        };
+        buttons.Controls.Add(ok);
+        buttons.Controls.Add(cancel);
+
+        _panel.Controls.Add(buttons);
+        _panel.SetCellPosition(buttons, new TableLayoutPanelCellPosition(0, _row));
+        _panel.SetColumnSpan(buttons, 2);
+
+        Controls.Add(_panel);
         AcceptButton = ok;
         CancelButton = cancel;
     }

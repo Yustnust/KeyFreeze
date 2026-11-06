@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 
 namespace KeyFreeze;
 
@@ -8,8 +9,8 @@ internal sealed class UnlockDetector : IDisposable
     private readonly System.Text.StringBuilder _buffer = new();
     private int _lastKeyTicks;
     private int? _comboStart;
-    private bool _cCtrl, _cAlt, _cShift, _cKey;
     private volatile bool _active;
+    private Timer? _comboTimer;
 
     public event EventHandler? UnlockRequested;
 
@@ -21,16 +22,21 @@ internal sealed class UnlockDetector : IDisposable
         _buffer.Clear();
         _lastKeyTicks = 0;
         _comboStart = null;
-        _cCtrl = _cAlt = _cShift = _cKey = false;
+        _comboTimer?.Dispose();
+        _comboTimer = new Timer(ComboTick, null, 0, 100);
     }
 
-    public void Stop() => _active = false;
+    public void Stop()
+    {
+        _active = false;
+        _comboTimer?.Dispose();
+        _comboTimer = null;
+    }
 
     public void OnKey(int vk, bool isDown)
     {
-        if (!_active) return;
-        UpdateCombo(vk, isDown);
-        if (isDown) CheckPassphrase(vk);
+        if (!_active || !isDown) return;
+        CheckPassphrase(vk);
     }
 
     private void CheckPassphrase(int vk)
@@ -54,17 +60,20 @@ internal sealed class UnlockDetector : IDisposable
         }
     }
 
-    private void UpdateCombo(int vk, bool down)
+    private void ComboTick(object? state)
     {
-        if (vk == NativeMethods.VK_CONTROL) _cCtrl = down;
-        else if (vk == NativeMethods.VK_MENU) _cAlt = down;
-        else if (vk == NativeMethods.VK_SHIFT) _cShift = down;
-        else if (vk == _settings.ComboKey) _cKey = down;
+        if (!_active) return;
 
-        if (_cCtrl && _cAlt && _cShift && _cKey)
+        bool ctrl = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_CONTROL) & 0x8000) != 0;
+        bool alt = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_MENU) & 0x8000) != 0;
+        bool shift = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_SHIFT) & 0x8000) != 0;
+        bool key = (NativeMethods.GetAsyncKeyState(_settings.ComboKey) & 0x8000) != 0;
+
+        if (ctrl && alt && shift && key)
         {
-            if (_comboStart == null) _comboStart = Environment.TickCount;
-            else if (Environment.TickCount - _comboStart.Value >= _settings.ComboHoldMs)
+            int now = Environment.TickCount;
+            if (_comboStart == null) _comboStart = now;
+            else if (now - _comboStart.Value >= _settings.ComboHoldMs)
                 Trigger();
         }
         else
