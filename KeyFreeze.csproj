@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net40</TargetFramework>
+    <TargetFrameworks>net40;net10.0-windows</TargetFrameworks>
     <AssemblyName>KeyFreeze</AssemblyName>
     <RootNamespace>KeyFreeze</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -12,16 +12,19 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>KeyFreeze_Win10</AssemblyName>
+  </PropertyGroup>
+
   <ItemGroup>
+    <EmbeddedResource Include="app.ico" LogicalName="KeyFreeze.app.ico" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="app.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
   </ItemGroup>
 

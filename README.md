@@ -27,16 +27,22 @@
 
 ## 构建与发布
 
-开发机只需 .NET 10 SDK（或任意新版 SDK），目标框架为 .NET Framework 4.0，最终产出的是单一 `KeyFreeze.exe`（图标已内嵌）。
+工程为**多目标**：`net40`（Windows 7 等老系统）与 `net10.0-windows`（Windows 10 / 11）。两者共用同一份源码，一次编译同时产出，图标均已内嵌。开发机只需 .NET 10 SDK。
 
 ```powershell
-# 构建
+# 两个目标一起构建
 dotnet build -c Release
-# 产物：bin\Release\KeyFreeze.exe（直接复制即可分发）
+#   bin\Release\net40\KeyFreeze.exe                        -> Windows 7 用（单 exe）
+#   bin\Release\net10.0-windows\KeyFreeze_Win10.exe       -> Windows 10/11 用（需 .NET 10 桌面运行时）
+
+# 为 Windows 10/11 生成「自带运行时」的单文件 exe（无需目标机装 .NET）
+dotnet publish -c Release -f net10.0-windows -r win-x64 --self-contained true -p:PublishSingleFile=true
+#   bin\Release\net10.0-windows\win-x64\publish\KeyFreeze_Win10.exe  （约 110MB）
 ```
 
-> **在 Windows 7 上运行**：需先安装一次 **.NET Framework 4.0**（独立安装包，约 40MB，支持 Win7 RTM，无需 SP1）。
-> 安装后 `KeyFreeze.exe` 可直接运行；Win8 / Win10 / Win11 已内置 4.x，无需额外操作。
+> **Windows 7**：使用 `net40` 版本，需先安装一次 **.NET Framework 4.0**（独立安装包，约 40MB，支持 Win7 RTM，**无需 SP1**）。
+> **Windows 8 / 10 / 11**：系统已内置 .NET Framework 4.x，`net40` 版本同样可直接运行；也可选用 `net10.0-windows` 单文件版。
+> 注意：`.NET 10` 版本**不能**在 Windows 7 上运行（运行时依赖 Win10 的 UCRT）。
 
 ## 安全说明
 
@@ -46,7 +52,7 @@ dotnet build -c Release
 
 ## 配置
 
-配置保存在 `%APPDATA%\KeyFreeze\config.json`，也可通过托盘菜单 **设置...** 修改：
+配置保存在 `%APPDATA%\KeyFreeze\config.cfg`（简单 `Key=Value` 文本），也可通过托盘菜单 **设置...** 修改：
 
 | 项 | 默认 | 说明 |
 |---|---|---|
@@ -60,7 +66,7 @@ dotnet build -c Release
 
 ## 技术实现
 
-- 语言：C# / .NET Framework 4.0（Windows Forms，托盘程序；兼容 Windows 7 / 8 / 10 / 11，Win7 上无需 SP1）。
+- 语言：C# / Windows Forms，多目标编译 `net40` + `net10.0-windows`（Win7 用前者，Win10/11 两者皆可）。
 - 输入拦截：通过 `SetWindowsHookEx` 安装 `WH_KEYBOARD_LL` / `WH_MOUSE_LL` 低层钩子，在回调中返回非零值吞掉事件。
-- 解锁判定：在钩子回调里先判断是否匹配解锁手势，再决定是否放行 / 吞掉。
+- 解锁判定：口令由钩子回调内的按键序列匹配；组合键由 `GetAsyncKeyState` 定时轮询物理按键状态并计时长按（不依赖键事件，钩子吞掉消息也不影响）。
 - 低层钩子随进程退出自动卸载，因此进程崩溃即等于「自动解锁」。
